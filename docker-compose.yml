@@ -1,0 +1,40 @@
+services:
+  postgresql:
+    image: postgres
+
+    networks:
+      bridge_network:
+
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_DB: mydb
+      POSTGRES_PASSWORD: mypassword
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+  liquibase:
+    image: liquibase/liquibase
+
+    networks:
+      bridge_network:
+
+    depends_on:
+      postgresql:
+        condition: service_healthy
+
+    volumes:
+      - ./changelog:/liquibase/changelog/
+
+    command: --defaults-file=/liquibase/changelog/liquibase.properties update
+
+networks:
+  bridge_network:
+    driver: bridge
