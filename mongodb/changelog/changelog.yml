@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: Liquibase
+      labels: createCollectionLabel
+      context: createCollectionContext
+      comment: create_collection_comment
+      changes:
+        - createCollection:
+            collectionName: towns_yaml

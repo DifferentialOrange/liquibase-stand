@@ -1,0 +1,44 @@
+services:
+  mongo:
+    image: mongodb/mongodb-community-server
+
+    networks:
+      bridge_network:
+
+    ports:
+      - "27017:27017"
+
+    healthcheck:
+      test: [
+        "CMD", "mongosh",
+        "--eval", "db.adminCommand('ping')",
+        "-u", "$MONGO_INITDB_ROOT_USERNAME",
+        "-p", "$MONGO_INITDB_ROOT_PASSWORD",
+      ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  liquibase:
+    image: liquibase/liquibase
+
+    networks:
+      bridge_network:
+
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+    volumes:
+      - ./changelog:/liquibase/changelog/
+      - ./lib:/liquibase/lib
+
+    command: --defaults-file=/liquibase/changelog/liquibase.properties update
+
+networks:
+  bridge_network:
+    driver: bridge
